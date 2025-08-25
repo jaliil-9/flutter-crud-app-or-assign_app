@@ -44,7 +44,7 @@ lib/
 └── bindings/                    # GetX dependency injection setup
 ```
 
-## 📦 Dependencies
+## Dependencies
 
 ### Core Dependencies
 ```yaml
@@ -170,7 +170,7 @@ For web deployment, ensure these domains are authorized:
 - `localhost` (development)
 - `https://caffedict-gauth.web.app` (production)
 
-## 🌐 API Integration
+## API Integration
 
 The app integrates with the RESTful API providing full CRUD functionality:
 
