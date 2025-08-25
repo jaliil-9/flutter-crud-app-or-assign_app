@@ -1,61 +1,48 @@
-/// Utility class for input validation
 class Validators {
-  /// Validates phone number format
-  /// Expects format: +[country code][number] (e.g., +1234567890)
   static String? validatePhoneNumber(String? value) {
-    if (value == null || value.isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return 'Phone number is required';
     }
 
-    // Remove any spaces or special characters except +
-    final cleanedValue = value.replaceAll(RegExp(r'[^\d+]'), '');
+    final phoneNumber = value.trim();
 
-    // Check if it starts with + and has at least 10 digits after country code
-    final RegExp phoneRegex = RegExp(r'^\+[1-9]\d{9,14}$');
+    // Basic phone number validation - should start with + and have at least 10 digits
+    final phoneRegex = RegExp(r'^\+[1-9]\d{9,14}$');
 
-    if (!phoneRegex.hasMatch(cleanedValue)) {
+    if (!phoneRegex.hasMatch(phoneNumber)) {
       return 'Please enter a valid phone number with country code (e.g., +1234567890)';
     }
 
     return null;
   }
 
-  /// Validates OTP format (6 digits)
   static String? validateOTP(String? value) {
-    if (value == null || value.isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return 'Verification code is required';
     }
 
-    if (value.length != 6) {
+    final otp = value.trim();
+
+    if (otp.length != 6) {
       return 'Verification code must be 6 digits';
     }
 
-    if (!RegExp(r'^\d{6}$').hasMatch(value)) {
+    if (!RegExp(r'^\d{6}$').hasMatch(otp)) {
       return 'Verification code must contain only numbers';
     }
 
     return null;
   }
 
-  /// Validates required fields
-  static String? validateRequired(String? value, String fieldName) {
-    if (value == null || value.trim().isEmpty) {
-      return '$fieldName is required';
-    }
-    return null;
-  }
-
-  /// Formats phone number for display
   static String formatPhoneNumber(String phoneNumber) {
-    // Remove any existing formatting
-    final cleaned = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+    // Remove all non-digit characters except +
+    String cleaned = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
 
-    if (cleaned.startsWith('+')) {
-      return cleaned;
-    } else if (cleaned.isNotEmpty) {
-      return '+$cleaned';
+    // Ensure it starts with +
+    if (!cleaned.startsWith('+')) {
+      cleaned = '+$cleaned';
     }
 
-    return phoneNumber;
+    return cleaned;
   }
 }

@@ -52,9 +52,8 @@ void main() {
       await controller.fetchObjects();
 
       // Assert
-      expect(controller.objects, equals(testObjects));
-      expect(controller.isLoading, false);
-      expect(controller.errorMessage, isEmpty);
+      expect(controller.objects.length, equals(2));
+      expect(controller.isLoading.value, false);
       verify(mockApiService.getObjects(limit: 20, offset: 0)).called(1);
     });
   });

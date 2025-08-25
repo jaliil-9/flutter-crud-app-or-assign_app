@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../controllers/auth_controller.dart';
-import '../../services/logging_service.dart';
+
 import '../../utils/constants.dart';
 import '../../utils/validators.dart';
 
@@ -166,7 +166,7 @@ class _LoginScreenState extends State<LoginScreen> {
   /// Build the send OTP button with loading state
   Widget _buildLoginButton() {
     return Obx(() {
-      final isLoading = _authController.isLoading;
+      final isLoading = _authController.isLoading.value;
 
       return SizedBox(
         height: AppConstants.buttonHeight,
@@ -227,36 +227,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   /// Handle send OTP button press
   void _handleSendOTP() {
-    LoggingService.info(
-      '📞 User initiated OTP send',
-      tag: 'LoginScreen',
-      data: {
-        'phoneNumberLength': _phoneController.text.trim().length,
-        'timestamp': DateTime.now().toIso8601String(),
-      },
-    );
-
     if (_formKey.currentState?.validate() ?? false) {
       final phoneNumber = Validators.formatPhoneNumber(
         _phoneController.text.trim(),
       );
-
-      LoggingService.info(
-        '✅ Phone number validation passed',
-        tag: 'LoginScreen',
-        data: {
-          'formattedPhoneNumber': phoneNumber,
-          'originalInput': _phoneController.text.trim(),
-        },
-      );
-
       _authController.sendOTP(phoneNumber);
-    } else {
-      LoggingService.warning(
-        '❌ Phone number validation failed',
-        tag: 'LoginScreen',
-        data: {'phoneNumberInput': _phoneController.text.trim()},
-      );
     }
   }
 

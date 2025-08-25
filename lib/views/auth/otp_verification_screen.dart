@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../controllers/auth_controller.dart';
-import '../../services/logging_service.dart';
+
 import '../../utils/constants.dart';
 import '../../utils/validators.dart';
 
@@ -27,33 +27,14 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   void initState() {
     super.initState();
 
-    LoggingService.info(
-      '🔐 OTP verification screen initialized',
-      tag: 'OTPVerificationScreen',
-    );
-
     // Get arguments from navigation
     final args = Get.arguments as Map<String, dynamic>? ?? {};
-    phoneNumber = args['phoneNumber'] ?? _authController.phoneNumber;
-    verificationId = args['verificationId'] ?? _authController.verificationId;
-
-    LoggingService.info(
-      '📋 OTP screen arguments received',
-      tag: 'OTPVerificationScreen',
-      data: {
-        'hasPhoneNumber': phoneNumber.isNotEmpty,
-        'hasVerificationId': verificationId.isNotEmpty,
-        'phoneNumber': phoneNumber,
-        'verificationId': verificationId,
-      },
-    );
+    phoneNumber = args['phoneNumber'] ?? _authController.phoneNumber.value;
+    verificationId =
+        args['verificationId'] ?? _authController.verificationId.value;
 
     // If no phone number available, go back to login
     if (phoneNumber.isEmpty) {
-      LoggingService.warning(
-        '❌ No phone number available, redirecting to login',
-        tag: 'OTPVerificationScreen',
-      );
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Get.offAllNamed('/login');
       });
@@ -216,11 +197,6 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
             onChanged: (value) {
               // Auto-submit when 6 digits are entered
               if (value.length == AppConstants.otpLength) {
-                LoggingService.info(
-                  '🔄 Auto-submitting OTP (6 digits entered)',
-                  tag: 'OTPVerificationScreen',
-                  data: {'otpLength': value.length},
-                );
                 _handleVerifyOTP();
               }
             },
@@ -241,7 +217,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   /// Build the verify button with loading state
   Widget _buildVerifyButton() {
     return Obx(() {
-      final isLoading = _authController.isLoading;
+      final isLoading = _authController.isLoading.value;
 
       return SizedBox(
         height: AppConstants.buttonHeight,
@@ -280,7 +256,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   /// Build the resend code section
   Widget _buildResendSection() {
     return Obx(() {
-      final isLoading = _authController.isLoading;
+      final isLoading = _authController.isLoading.value;
 
       return Column(
         children: [
@@ -333,59 +309,18 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
 
   /// Handle verify OTP button press
   void _handleVerifyOTP() {
-    LoggingService.info(
-      '🔐 User initiated OTP verification',
-      tag: 'OTPVerificationScreen',
-      data: {
-        'otpLength': _otpController.text.trim().length,
-        'phoneNumber': phoneNumber,
-        'verificationId': verificationId,
-        'timestamp': DateTime.now().toIso8601String(),
-      },
-    );
-
     if (_formKey.currentState?.validate() ?? false) {
       final otp = _otpController.text.trim();
-
-      LoggingService.info(
-        '✅ OTP validation passed',
-        tag: 'OTPVerificationScreen',
-        data: {'otpLength': otp.length, 'phoneNumber': phoneNumber},
-      );
-
       _authController.verifyOTP(otp);
-    } else {
-      LoggingService.warning(
-        '❌ OTP validation failed',
-        tag: 'OTPVerificationScreen',
-        data: {
-          'otpInput': _otpController.text.trim(),
-          'otpLength': _otpController.text.trim().length,
-        },
-      );
     }
   }
 
   /// Handle resend OTP button press
   void _handleResendOTP() {
-    LoggingService.info(
-      '🔄 User requested OTP resend',
-      tag: 'OTPVerificationScreen',
-      data: {
-        'phoneNumber': phoneNumber,
-        'verificationId': verificationId,
-        'timestamp': DateTime.now().toIso8601String(),
-      },
-    );
-
     _authController.resendOTP();
 
     // Clear the current OTP input
     _otpController.clear();
-    LoggingService.info(
-      '🧹 Cleared OTP input field',
-      tag: 'OTPVerificationScreen',
-    );
 
     // Show feedback to user
     ScaffoldMessenger.of(context).showSnackBar(

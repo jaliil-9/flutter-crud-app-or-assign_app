@@ -5,7 +5,6 @@ import '../../models/api_object.dart';
 import '../../services/navigation_service.dart';
 import 'widgets/loading_widget.dart';
 
-/// Simple key-value pair class for form data
 class KeyValuePair {
   final TextEditingController keyController;
   final TextEditingController valueController;
@@ -37,7 +36,6 @@ class _ObjectFormScreenState extends State<ObjectFormScreen> {
   bool _isEditMode = false;
   String? _editingObjectId;
 
-  // Key-value pairs for data
   List<KeyValuePair> _keyValuePairs = [KeyValuePair()];
 
   @override
@@ -48,7 +46,6 @@ class _ObjectFormScreenState extends State<ObjectFormScreen> {
 
   void _initializeForm() {
     final String? objectId = Get.parameters['id'];
-    // Ensure controller is available
     final ObjectController controller = Get.put(
       ObjectController(),
       permanent: false,
@@ -58,12 +55,10 @@ class _ObjectFormScreenState extends State<ObjectFormScreen> {
       _isEditMode = true;
       _editingObjectId = objectId;
 
-      // Load object data if editing
-      final existingObject = controller.selectedObject;
+      final existingObject = controller.selectedObject.value;
       if (existingObject != null && existingObject.id == objectId) {
         _populateForm(existingObject);
       } else {
-        // Fetch object data if not available
         controller.getObjectById(objectId).then((object) {
           if (object != null) {
             _populateForm(object);
@@ -84,7 +79,6 @@ class _ObjectFormScreenState extends State<ObjectFormScreen> {
             )
             .toList();
 
-        // Add an empty pair at the end for adding new fields
         if (_keyValuePairs.isEmpty || _keyValuePairs.last.key.isNotEmpty) {
           _keyValuePairs.add(KeyValuePair());
         }
@@ -97,7 +91,6 @@ class _ObjectFormScreenState extends State<ObjectFormScreen> {
 
     for (final pair in _keyValuePairs) {
       if (pair.key.trim().isNotEmpty && pair.value.trim().isNotEmpty) {
-        // Try to parse as number if possible, otherwise keep as string
         final String value = pair.value.trim();
         if (RegExp(r'^\d+$').hasMatch(value)) {
           data[pair.key.trim()] = int.tryParse(value) ?? value;
@@ -136,7 +129,6 @@ class _ObjectFormScreenState extends State<ObjectFormScreen> {
       return;
     }
 
-    // Validate key-value pairs
     bool hasValidData = false;
     for (final pair in _keyValuePairs) {
       if (pair.key.trim().isNotEmpty && pair.value.trim().isNotEmpty) {
@@ -145,7 +137,6 @@ class _ObjectFormScreenState extends State<ObjectFormScreen> {
       }
     }
 
-    // Ensure controller is available
     final ObjectController controller = Get.put(
       ObjectController(),
       permanent: false,
@@ -187,7 +178,7 @@ class _ObjectFormScreenState extends State<ObjectFormScreen> {
         ),
         actions: [
           GetBuilder<ObjectController>(
-            builder: (controller) => controller.isLoading
+            builder: (controller) => controller.isLoading.value
                 ? const Padding(
                     padding: EdgeInsets.all(16),
                     child: SizedBox(
@@ -205,10 +196,9 @@ class _ObjectFormScreenState extends State<ObjectFormScreen> {
       ),
       body: GetBuilder<ObjectController>(
         builder: (controller) {
-          // Show loading state when fetching object for edit
           if (_isEditMode &&
-              controller.isLoading &&
-              controller.selectedObject?.id != _editingObjectId) {
+              controller.isLoading.value &&
+              controller.selectedObject.value?.id != _editingObjectId) {
             return const LoadingWidget(message: 'Loading object data...');
           }
 
@@ -219,7 +209,6 @@ class _ObjectFormScreenState extends State<ObjectFormScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Name Field
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(16),
@@ -270,7 +259,6 @@ class _ObjectFormScreenState extends State<ObjectFormScreen> {
 
                   const SizedBox(height: 16),
 
-                  // Data Fields (Key-Value Pairs)
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(16),
@@ -302,14 +290,12 @@ class _ObjectFormScreenState extends State<ObjectFormScreen> {
                           ),
                           const SizedBox(height: 16),
 
-                          // Key-Value Pairs List
                           ...List.generate(_keyValuePairs.length, (index) {
                             final pair = _keyValuePairs[index];
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 12),
                               child: Row(
                                 children: [
-                                  // Key Field
                                   Expanded(
                                     flex: 2,
                                     child: TextFormField(
@@ -325,7 +311,6 @@ class _ObjectFormScreenState extends State<ObjectFormScreen> {
                                             ),
                                       ),
                                       onChanged: (value) {
-                                        // Auto-add new pair when user starts typing in the last empty pair
                                         if (index ==
                                                 _keyValuePairs.length - 1 &&
                                             value.isNotEmpty &&
@@ -337,7 +322,6 @@ class _ObjectFormScreenState extends State<ObjectFormScreen> {
                                   ),
                                   const SizedBox(width: 8),
 
-                                  // Value Field
                                   Expanded(
                                     flex: 3,
                                     child: TextFormField(
@@ -356,7 +340,6 @@ class _ObjectFormScreenState extends State<ObjectFormScreen> {
                                     ),
                                   ),
 
-                                  // Remove Button
                                   if (_keyValuePairs.length > 1)
                                     IconButton(
                                       onPressed: () =>
@@ -368,15 +351,12 @@ class _ObjectFormScreenState extends State<ObjectFormScreen> {
                                       tooltip: 'Remove this field',
                                     )
                                   else
-                                    const SizedBox(
-                                      width: 48,
-                                    ), // Placeholder for alignment
+                                    const SizedBox(width: 48),
                                 ],
                               ),
                             );
                           }),
 
-                          // Add New Field Button
                           if (_keyValuePairs.length < 10)
                             Center(
                               child: OutlinedButton.icon(
@@ -397,13 +377,14 @@ class _ObjectFormScreenState extends State<ObjectFormScreen> {
 
                   const SizedBox(height: 32),
 
-                  // Submit Button
                   SizedBox(
                     width: double.infinity,
                     child: GetBuilder<ObjectController>(
                       builder: (controller) => FilledButton.icon(
-                        onPressed: controller.isLoading ? null : _submitForm,
-                        icon: controller.isLoading
+                        onPressed: controller.isLoading.value
+                            ? null
+                            : _submitForm,
+                        icon: controller.isLoading.value
                             ? const SizedBox(
                                 width: 16,
                                 height: 16,
@@ -414,7 +395,7 @@ class _ObjectFormScreenState extends State<ObjectFormScreen> {
                               )
                             : Icon(_isEditMode ? Icons.update : Icons.add),
                         label: Text(
-                          controller.isLoading
+                          controller.isLoading.value
                               ? (_isEditMode ? 'Updating...' : 'Creating...')
                               : (_isEditMode
                                     ? 'Update Object'
@@ -429,7 +410,6 @@ class _ObjectFormScreenState extends State<ObjectFormScreen> {
 
                   const SizedBox(height: 16),
 
-                  // Cancel Button
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
@@ -444,7 +424,6 @@ class _ObjectFormScreenState extends State<ObjectFormScreen> {
 
                   const SizedBox(height: 16),
 
-                  // Help Card
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(16),

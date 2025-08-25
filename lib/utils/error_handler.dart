@@ -3,16 +3,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../services/api_service.dart';
-import '../services/feedback_service.dart';
 import 'connectivity_helper.dart';
 
-/// Global error handler for managing all types of errors in the application
 class ErrorHandler {
   static const String _tag = 'ErrorHandler';
 
-  /// Initialize global error handling
   static void initialize() {
-    // Set up global error handler for Flutter framework errors
     FlutterError.onError = (FlutterErrorDetails details) {
       _logError(
         'Flutter Error',
@@ -21,16 +17,13 @@ class ErrorHandler {
         details.context?.toString(),
       );
 
-      // In debug mode, use the default error handler
       if (kDebugMode) {
         FlutterError.presentError(details);
       } else {
-        // In release mode, show user-friendly error
         _showUserFriendlyError('An unexpected error occurred');
       }
     };
 
-    // Set up global error handler for async errors
     PlatformDispatcher.instance.onError = (error, stack) {
       _logError('Async Error', error, stack);
 
@@ -38,62 +31,51 @@ class ErrorHandler {
         _showUserFriendlyError('An unexpected error occurred');
       }
 
-      return true; // Indicates that the error was handled
+      return true;
     };
   }
 
-  /// Handle API-related errors with appropriate user feedback
   static void handleApiError(dynamic error, {String? context}) {
     _logError('API Error', error, null, context);
 
+    String message;
     if (error is ApiException) {
       switch (error.statusCode) {
         case 400:
-          FeedbackService.showError(
-            'Invalid request. Please check your input.',
-          );
+          message = 'Invalid request. Please check your input.';
           break;
         case 401:
-          FeedbackService.showError(
-            'Authentication required. Please log in again.',
-          );
-          // Could trigger logout here if needed
+          message = 'Authentication required. Please log in again.';
           break;
         case 403:
-          FeedbackService.showError(
-            'Access denied. You don\'t have permission for this action.',
-          );
+          message =
+              'Access denied. You don\'t have permission for this action.';
           break;
         case 404:
-          FeedbackService.showError('The requested resource was not found.');
+          message = 'The requested resource was not found.';
           break;
         case 408:
-          FeedbackService.showNetworkError(
-            'Request timeout. Please try again.',
-          );
+          message = 'Request timeout. Please try again.';
           break;
         case 429:
-          FeedbackService.showError(
-            'Too many requests. Please wait a moment and try again.',
-          );
+          message = 'Too many requests. Please wait a moment and try again.';
           break;
         case 500:
         case 502:
         case 503:
         case 504:
-          FeedbackService.showError('Server error. Please try again later.');
+          message = 'Server error. Please try again later.';
           break;
         default:
-          FeedbackService.showError(error.message);
+          message = error.message;
       }
     } else {
-      FeedbackService.showError(
-        'Network error occurred. Please check your connection.',
-      );
+      message = 'Network error occurred. Please check your connection.';
     }
+
+    _showErrorSnackBar(message);
   }
 
-  /// Handle authentication errors
   static void handleAuthError(dynamic error, {String? context}) {
     _logError('Auth Error', error, null, context);
 
@@ -109,29 +91,27 @@ class ErrorHandler {
       message = 'Network error. Please check your connection.';
     }
 
-    FeedbackService.showAuthError(message);
+    _showErrorSnackBar(message, title: 'Authentication Error');
   }
 
-  /// Handle network connectivity errors
   static Future<void> handleConnectivityError({
     required VoidCallback onRetry,
     String? customMessage,
   }) async {
     final bool isConnected = await ConnectivityHelper.checkConnectivity();
 
+    String message;
     if (!isConnected) {
-      FeedbackService.showNetworkError(
-        customMessage ??
-            'No internet connection. Please check your network settings.',
-      );
+      message =
+          customMessage ??
+          'No internet connection. Please check your network settings.';
     } else {
-      FeedbackService.showNetworkError(
-        customMessage ?? 'Network error occurred. Please try again.',
-      );
+      message = customMessage ?? 'Network error occurred. Please try again.';
     }
+
+    _showErrorSnackBar(message, title: 'Connection Error');
   }
 
-  /// Execute an operation with automatic retry mechanism
   static Future<T?> executeWithRetry<T>(
     Future<T> Function() operation, {
     int maxRetries = 3,
@@ -149,7 +129,6 @@ class ErrorHandler {
           context,
         );
 
-        // Check connectivity before attempting
         final bool isConnected = await ConnectivityHelper.checkConnectivity();
         if (!isConnected) {
           throw const ApiException('No internet connection');
@@ -159,7 +138,7 @@ class ErrorHandler {
 
         if (attempts > 1) {
           _logInfo('Operation succeeded after $attempts attempts', context);
-          FeedbackService.showSuccess('Operation completed successfully');
+          _showSuccessSnackBar('Operation completed successfully');
         }
 
         return result;
@@ -172,7 +151,6 @@ class ErrorHandler {
         );
 
         if (attempts >= maxRetries) {
-          // Final attempt failed
           if (showRetryDialog) {
             _showRetryDialog(operation, context);
           } else {
@@ -181,7 +159,6 @@ class ErrorHandler {
           return null;
         }
 
-        // Wait before retrying (exponential backoff)
         final retryDelay = Duration(
           milliseconds: delay.inMilliseconds * attempts,
         );
@@ -194,7 +171,6 @@ class ErrorHandler {
     return null;
   }
 
-  /// Show retry dialog for failed operations
   static void _showRetryDialog<T>(
     Future<T> Function() operation,
     String? context,
@@ -220,7 +196,6 @@ class ErrorHandler {
     );
   }
 
-  /// Log error with detailed information
   static void _logError(
     String type,
     dynamic error,
@@ -236,63 +211,51 @@ class ErrorHandler {
         name: _tag,
         error: error,
         stackTrace: stackTrace,
-        level: 1000, // Error level
+        level: 1000,
       );
     } else {
-      // In production, you might want to send to crash reporting service
-      // like Firebase Crashlytics, Sentry, etc.
       developer.log(message, name: _tag, level: 1000);
     }
   }
 
-  /// Log informational messages
   static void _logInfo(String message, [String? context]) {
     final String contextInfo = context != null ? ' [$context]' : '';
     final String logMessage = '$message$contextInfo';
 
     if (kDebugMode) {
-      developer.log(logMessage, name: _tag, level: 800); // Info level
+      developer.log(logMessage, name: _tag, level: 800);
     }
   }
 
-  /// Show user-friendly error message
   static void _showUserFriendlyError(String message) {
-    // Use a delayed call to ensure the app is ready to show dialogs
     Future.delayed(const Duration(milliseconds: 100), () {
       if (Get.context != null) {
-        FeedbackService.showError(message);
+        _showErrorSnackBar(message);
       }
     });
   }
 
-  /// Handle validation errors
   static void handleValidationError(String field, String message) {
     _logInfo('Validation Error: $field - $message');
-    FeedbackService.showValidationError(message);
+    _showWarningSnackBar(message, title: 'Validation Error');
   }
 
-  /// Handle form submission errors
   static void handleFormError(Map<String, String> errors) {
     _logInfo('Form Errors: $errors');
 
     if (errors.isNotEmpty) {
       final String firstError = errors.values.first;
-      FeedbackService.showValidationError(firstError);
+      _showWarningSnackBar(firstError, title: 'Validation Error');
     }
   }
 
-  /// Check if error is recoverable (can be retried)
   static bool isRecoverableError(dynamic error) {
     if (error is ApiException) {
-      // Network timeouts, server errors, and connectivity issues are recoverable
-      return error.statusCode == null || // Network errors
-          error.statusCode == 408 || // Timeout
-          error.statusCode == 429 || // Rate limit
-          (error.statusCode! >= 500 &&
-              error.statusCode! < 600); // Server errors
+      return error.statusCode == null ||
+          error.statusCode == 408 ||
+          error.statusCode == 429 ||
+          (error.statusCode! >= 500 && error.statusCode! < 600);
     }
-
-    // Check for common recoverable error patterns
     final String errorString = error.toString().toLowerCase();
     return errorString.contains('network') ||
         errorString.contains('timeout') ||
@@ -300,7 +263,6 @@ class ErrorHandler {
         errorString.contains('socket');
   }
 
-  /// Get user-friendly error message from exception
   static String getUserFriendlyMessage(dynamic error) {
     if (error is ApiException) {
       return error.message;
@@ -316,6 +278,60 @@ class ErrorHandler {
       return 'Invalid data format. Please check your input.';
     } else {
       return 'An unexpected error occurred. Please try again.';
+    }
+  }
+
+  static void _showErrorSnackBar(String message, {String? title}) {
+    try {
+      Get.snackbar(
+        title ?? 'Error',
+        message,
+        backgroundColor: Get.theme.colorScheme.error,
+        colorText: Get.theme.colorScheme.onError,
+        icon: Icon(Icons.error_outline, color: Get.theme.colorScheme.onError),
+        duration: const Duration(seconds: 4),
+        margin: const EdgeInsets.all(16),
+        borderRadius: 12,
+      );
+    } catch (e) {
+      debugPrint('Error showing snackbar: $e');
+    }
+  }
+
+  static void _showSuccessSnackBar(String message, {String? title}) {
+    try {
+      Get.snackbar(
+        title ?? 'Success',
+        message,
+        backgroundColor: Get.theme.colorScheme.primary,
+        colorText: Get.theme.colorScheme.onPrimary,
+        icon: Icon(
+          Icons.check_circle_outline,
+          color: Get.theme.colorScheme.onPrimary,
+        ),
+        duration: const Duration(seconds: 3),
+        margin: const EdgeInsets.all(16),
+        borderRadius: 12,
+      );
+    } catch (e) {
+      debugPrint('Error showing snackbar: $e');
+    }
+  }
+
+  static void _showWarningSnackBar(String message, {String? title}) {
+    try {
+      Get.snackbar(
+        title ?? 'Warning',
+        message,
+        backgroundColor: Colors.orange.shade600,
+        colorText: Colors.white,
+        icon: const Icon(Icons.warning_outlined, color: Colors.white),
+        duration: const Duration(seconds: 3),
+        margin: const EdgeInsets.all(16),
+        borderRadius: 12,
+      );
+    } catch (e) {
+      debugPrint('Error showing snackbar: $e');
     }
   }
 }

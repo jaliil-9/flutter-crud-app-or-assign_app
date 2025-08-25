@@ -7,7 +7,6 @@ class User {
 
   const User({required this.uid, required this.phoneNumber, this.lastLogin});
 
-  /// Factory constructor to create User from Firebase User
   factory User.fromFirebaseUser(firebase_auth.User firebaseUser) {
     return User(
       uid: firebaseUser.uid,
@@ -16,7 +15,6 @@ class User {
     );
   }
 
-  /// Factory constructor to create User from JSON
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       uid: json['uid'] as String,
@@ -27,7 +25,6 @@ class User {
     );
   }
 
-  /// Convert User to JSON
   Map<String, dynamic> toJson() {
     return {
       'uid': uid,
@@ -36,7 +33,6 @@ class User {
     };
   }
 
-  /// Create a copy of this User with updated fields
   User copyWith({String? uid, String? phoneNumber, DateTime? lastLogin}) {
     return User(
       uid: uid ?? this.uid,

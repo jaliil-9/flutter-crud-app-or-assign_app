@@ -16,7 +16,6 @@ class ObjectListScreen extends StatelessWidget {
     final ObjectController controller = Get.put(ObjectController());
     final ScrollController scrollController = ScrollController();
 
-    // Add scroll listener for pagination
     scrollController.addListener(() {
       if (scrollController.position.pixels >=
           scrollController.position.maxScrollExtent - 200) {
@@ -45,23 +44,10 @@ class ObjectListScreen extends StatelessWidget {
         ],
       ),
       body: Obx(() {
-        // Show initial loading state
-        if (controller.isLoading && controller.objects.isEmpty) {
+        if (controller.isLoading.value && controller.objects.isEmpty) {
           return const LoadingWidget(message: 'Loading objects...');
         }
 
-        // Show error state with retry option
-        if (controller.errorMessage.isNotEmpty && controller.objects.isEmpty) {
-          return EmptyStateWidget(
-            title: 'Error Loading Objects',
-            message: controller.errorMessage,
-            icon: Icons.error_outline,
-            onAction: () => controller.fetchObjects(refresh: true),
-            actionButtonText: 'Try Again',
-          );
-        }
-
-        // Show empty state
         if (controller.objects.isEmpty) {
           return EmptyStateWidget(
             title: 'No Objects Found',
@@ -71,13 +57,11 @@ class ObjectListScreen extends StatelessWidget {
           );
         }
 
-        // Show objects list
         return RefreshIndicator(
           onRefresh: () => controller.refreshObjects(),
           child: CustomScrollView(
             controller: scrollController,
             slivers: [
-              // Objects list
               SliverList(
                 delegate: SliverChildBuilderDelegate((context, index) {
                   if (index < controller.objects.length) {
@@ -94,8 +78,7 @@ class ObjectListScreen extends StatelessWidget {
                 }, childCount: controller.objects.length),
               ),
 
-              // Loading more indicator
-              if (controller.isLoadingMore)
+              if (controller.isLoadingMore.value)
                 const SliverToBoxAdapter(
                   child: Padding(
                     padding: EdgeInsets.all(16),
@@ -106,9 +89,8 @@ class ObjectListScreen extends StatelessWidget {
                   ),
                 ),
 
-              // Load more button (if not loading and has more)
-              if (!controller.isLoadingMore &&
-                  controller.hasMore &&
+              if (!controller.isLoadingMore.value &&
+                  controller.hasMore.value &&
                   controller.objects.isNotEmpty)
                 SliverToBoxAdapter(
                   child: Padding(
@@ -123,8 +105,7 @@ class ObjectListScreen extends StatelessWidget {
                   ),
                 ),
 
-              // End of list indicator
-              if (!controller.hasMore && controller.objects.isNotEmpty)
+              if (!controller.hasMore.value && controller.objects.isNotEmpty)
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -141,7 +122,6 @@ class ObjectListScreen extends StatelessWidget {
                   ),
                 ),
 
-              // Bottom padding for FAB
               const SliverToBoxAdapter(child: SizedBox(height: 80)),
             ],
           ),

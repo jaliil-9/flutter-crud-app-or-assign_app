@@ -8,8 +8,7 @@ import 'app/widgets/app_wrapper.dart';
 import 'bindings/initial_binding.dart';
 import 'controllers/theme_controller.dart';
 import 'utils/error_handler.dart';
-import 'utils/connectivity_helper.dart';
-import 'services/logging_service.dart';
+
 import 'firebase_options.dart';
 
 void main() async {
@@ -19,9 +18,7 @@ void main() async {
   await GetStorage.init();
 
   // Initialize other services
-  await LoggingService.initialize();
   ErrorHandler.initialize();
-  ConnectivityHelper.initialize();
 
   // Initialize theme controller
   Get.put(ThemeController());
@@ -30,7 +27,7 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Log app startup
-  LoggingService.info('Application started');
+  debugPrint('Application started');
 
   runApp(const MyApp());
 }

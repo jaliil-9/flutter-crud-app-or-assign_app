@@ -76,12 +76,12 @@ class ThemeSettingsWidget extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppDimensions.borderRadiusMedium),
           color: isSelected
-              ? context.colorScheme.primaryContainer.withOpacity(0.3)
+              ? context.colorScheme.primaryContainer.withValues(alpha: 0.3)
               : Colors.transparent,
           border: isSelected
               ? Border.all(color: context.colorScheme.primary, width: 2)
               : Border.all(
-                  color: context.colorScheme.outline.withOpacity(0.2),
+                  color: context.colorScheme.outline.withValues(alpha: 0.2),
                   width: 1,
                 ),
         ),
@@ -130,7 +130,6 @@ class ThemeSettingsWidget extends StatelessWidget {
   }
 }
 
-/// Simple theme toggle button that can be used in app bars
 class ThemeToggleButton extends StatelessWidget {
   const ThemeToggleButton({super.key});
 
@@ -149,7 +148,6 @@ class ThemeToggleButton extends StatelessWidget {
   }
 }
 
-/// Theme cycle button that cycles through all theme modes
 class ThemeCycleButton extends StatelessWidget {
   const ThemeCycleButton({super.key});
 

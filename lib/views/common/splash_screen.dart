@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import '../../controllers/auth_controller.dart';
 import '../../app/routes/app_routes.dart';
 
-/// Splash screen that handles initial authentication state checking
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -18,18 +17,15 @@ class _SplashScreenState extends State<SplashScreen> {
     _initializeApp();
   }
 
-  /// Initialize app and check authentication state
   Future<void> _initializeApp() async {
     final AuthController authController = Get.find<AuthController>();
 
-    // Wait for auth controller to be ready and for a minimum splash duration
     await Future.wait([
       authController.onAuthReady,
       Future.delayed(const Duration(seconds: 2)),
     ]);
 
-    // Navigate based on authentication status
-    if (authController.isAuthenticated) {
+    if (authController.isAuthenticated.value) {
       Get.offAllNamed(AppRoutes.objectList);
     } else {
       Get.offAllNamed(AppRoutes.login);
@@ -44,7 +40,6 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // App logo or icon
             Icon(
               Icons.assignment,
               size: 80,
@@ -52,7 +47,6 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const SizedBox(height: 24),
 
-            // App title
             Text(
               'Assign App',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -61,8 +55,6 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             ),
             const SizedBox(height: 48),
-
-            // Loading indicator
             CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(
                 Theme.of(context).colorScheme.onPrimary,

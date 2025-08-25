@@ -3,8 +3,7 @@ import 'package:get/get.dart';
 import '../../controllers/object_controller.dart';
 import '../../app/routes/app_routes.dart';
 import '../../services/navigation_service.dart';
-import '../../services/feedback_service.dart';
-import '../../services/logging_service.dart';
+
 import 'widgets/loading_widget.dart';
 import '../common/confirmation_dialog.dart';
 import '../common/empty_state_widget.dart';
@@ -17,8 +16,7 @@ class ObjectDetailScreen extends StatelessWidget {
     final ObjectController controller = Get.find<ObjectController>();
     final String objectId = Get.parameters['id'] ?? '';
 
-    // Load object details if not already loaded
-    if (controller.selectedObject?.id != objectId) {
+    if (controller.selectedObject.value?.id != objectId) {
       controller.getObjectById(objectId);
     }
 
@@ -31,7 +29,7 @@ class ObjectDetailScreen extends StatelessWidget {
         ),
         actions: [
           Obx(() {
-            final object = controller.selectedObject;
+            final object = controller.selectedObject.value;
             if (object != null) {
               return PopupMenuButton<String>(
                 onSelected: (value) async {
@@ -77,24 +75,12 @@ class ObjectDetailScreen extends StatelessWidget {
         ],
       ),
       body: Obx(() {
-        // Show loading state
-        if (controller.isLoading && controller.selectedObject == null) {
+        if (controller.isLoading.value &&
+            controller.selectedObject.value == null) {
           return const LoadingWidget(message: 'Loading object details...');
         }
 
-        // Show error state
-        if (controller.errorMessage.isNotEmpty &&
-            controller.selectedObject == null) {
-          return EmptyStateWidget(
-            title: 'Error Loading Details',
-            message: controller.errorMessage,
-            icon: Icons.error_outline,
-            onAction: () => controller.getObjectById(objectId),
-            actionButtonText: 'Try Again',
-          );
-        }
-
-        final object = controller.selectedObject;
+        final object = controller.selectedObject.value;
         if (object == null) {
           return const EmptyStateWidget(
             title: 'Object Not Found',
@@ -108,7 +94,6 @@ class ObjectDetailScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Object ID Card
               if (object.id != null)
                 Card(
                   child: Padding(
@@ -166,8 +151,10 @@ class ObjectDetailScreen extends StatelessWidget {
                         ),
                         IconButton(
                           onPressed: () {
-                            // Copy to clipboard functionality could be added here
-                            FeedbackService.showCopySuccess('Object ID');
+                            Get.snackbar(
+                              'Copied',
+                              'Object ID copied to clipboard',
+                            );
                           },
                           icon: const Icon(Icons.copy),
                           tooltip: 'Copy ID',
@@ -179,7 +166,6 @@ class ObjectDetailScreen extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // Object Name Card
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -220,7 +206,6 @@ class ObjectDetailScreen extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // Object Data Card
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -333,7 +318,6 @@ class ObjectDetailScreen extends StatelessWidget {
 
               const SizedBox(height: 32),
 
-              // Action Buttons
               Row(
                 children: [
                   Expanded(
@@ -384,25 +368,8 @@ class ObjectDetailScreen extends StatelessWidget {
     ObjectController controller,
     String objectId,
   ) {
-    LoggingService.info(
-      '🗑️ Delete confirmation requested',
-      tag: 'ObjectDetailScreen',
-      data: {'objectId': objectId},
-    );
-
     ConfirmationDialog.showDeleteWithGetX(itemName: 'object').then((confirmed) {
-      LoggingService.info(
-        '🗑️ Delete confirmation result',
-        tag: 'ObjectDetailScreen',
-        data: {'confirmed': confirmed, 'objectId': objectId},
-      );
-
       if (confirmed == true) {
-        LoggingService.info(
-          '🗑️ Calling controller.deleteObject',
-          tag: 'ObjectDetailScreen',
-          data: {'objectId': objectId},
-        );
         controller.deleteObject(objectId);
       }
     });

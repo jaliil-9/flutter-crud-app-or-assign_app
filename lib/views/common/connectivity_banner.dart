@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../utils/connectivity_helper.dart';
 
-/// Banner widget that shows connectivity status
 class ConnectivityBanner extends StatelessWidget {
   final Widget child;
 
@@ -20,13 +19,10 @@ class ConnectivityBanner extends StatelessWidget {
               color: Theme.of(context).colorScheme.error,
               child: Row(
                 children: [
-                  Directionality(
-                    textDirection: TextDirection.ltr,
-                    child: Icon(
-                      Icons.wifi_off,
-                      color: Theme.of(context).colorScheme.onError,
-                      size: 16,
-                    ),
+                  Icon(
+                    Icons.wifi_off,
+                    color: Theme.of(context).colorScheme.onError,
+                    size: 16,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -39,17 +35,6 @@ class ConnectivityBanner extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (ConnectivityHelper.isChecking)
-                    SizedBox(
-                      width: 12,
-                      height: 12,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          Theme.of(context).colorScheme.onError,
-                        ),
-                      ),
-                    ),
                 ],
               ),
             );
